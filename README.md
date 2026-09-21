@@ -75,6 +75,54 @@ System.out.appendHTML().html {
 }
 ```
 
+# Validation
+
+`TagConsumer.validated()` wraps any consumer (stream, DOM, or a composition with
+`filter`/`onFinalize`/`trace`/`inject`) with structural validation, without
+building a DOM. It checks tag nesting and end-tag pairing, duplicate attributes,
+attribute changes arriving after content, content emitted into void elements,
+and any writes after `finalize()`:
+
+```kotlin
+val consumer = StringBuilder()
+    .appendHTML()
+    .validated { mode = ValidationMode.COLLECT }
+    .div { +"validated" }
+```
+
+Semantics:
+
+- **Strict mode** (default) throws `HtmlValidationException` *before* a
+  structure-breaking event is forwarded downstream.
+- **Collect mode** (`ValidationMode.COLLECT`) is transparent: every event is
+  forwarded in arrival order, and a bounded number of diagnostics
+  (`ValidationConfig.maxDiagnostics`) is recorded in
+  `ValidatingTagConsumer.diagnostics` instead.
+- Each `HtmlValidationDiagnostic` carries the tag stack, the current event, an
+  optional lightweight source token (`ValidationConfig.sourceToken`, evaluated
+  lazily only when a diagnostic is created; `jvmCallSiteSourceToken()` on the
+  JVM), and the output state at that moment.
+- The validator reports what the DSL event stream actually does. Implicit fixes
+  of the HTML tree builder are *not* treated as legal events: omitted optional
+  end tags (e.g. `</li>`) are reported as warnings, mismatched end tags and
+  content in void elements as errors.
+- Diagnostics belong to the event stream at the wrapper's own position: with
+  `stream.validated().filter { ... }` the validator sees the original events,
+  with `stream.filter { ... }.validated()` it sees the transformed ones.
+- `finalize()` is idempotent: downstream `finalize()` runs at most once, a
+  downstream exception is rethrown as-is on every call, and downstream failures
+  are never converted into structural diagnostics.
+
+Complexity and compatibility:
+
+- Validation is O(1) per event (O(depth) only for mismatched end tags) and
+  O(depth) memory; recorded diagnostics are bounded by `maxDiagnostics`.
+- Validation is opt-in per consumer instance and adds no global state, so the
+  hot path of unwrapped consumers is unchanged.
+- The wrapper only observes and forwards events; existing public behavior and
+  all supported platforms are unaffected unless you opt in, and strict mode is
+  the only mode that changes control flow (by throwing).
+
 # Documentation
 
 See [wiki](https://github.com/kotlin/kotlinx.html/wiki) pages
@@ -82,4 +130,3 @@ See [wiki](https://github.com/kotlin/kotlinx.html/wiki) pages
 # Building
 
 See the [development](https://github.com/kotlin/kotlinx.html/wiki/Development) page for details.
-
