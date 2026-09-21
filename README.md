@@ -79,7 +79,49 @@ System.out.appendHTML().html {
 
 See [wiki](https://github.com/kotlin/kotlinx.html/wiki) pages
 
+# Validating consumer
+
+`TagConsumer.validate()` (package `kotlinx.html.consumers`) wraps any consumer with
+structural validation without building a DOM: tag nesting, end-tag pairing, duplicate
+attributes, content placement and writes after `finalize()` are checked event by event.
+
+```kotlin
+val consumer = System.out.appendHTML().validate(mode = ValidationMode.STRICT)
+consumer.div {
+    +"validated"
+}
+consumer.finalize()
+```
+
+Semantics:
+
+- **STRICT** (default): the first structural problem throws `ValidationException` *before*
+  the offending event is forwarded, so the downstream consumer never observes a
+  structure-breaking event.
+- **COLLECT**: diagnostics are recorded (bounded by `maxDiagnostics`, the overflow is
+  counted in `droppedDiagnosticCount`) and every event is still forwarded downstream
+  unchanged. The validator does not resynchronize after a broken event, so one mistake
+  may cause follow-up diagnostics.
+- Each `ValidationDiagnostic` carries the event, a snapshot of the open tag stack, an
+  optional caller-supplied `sourceToken` (evaluated lazily, only when a diagnostic is
+  created), and the downstream output state (number of forwarded events, finalized flag).
+- `finalize()` is idempotent: the downstream result (or exception) is cached and
+  returned/rethrown on repeated calls. Downstream exceptions propagate as-is and are
+  never converted into structural diagnostics.
+
+This is a DSL event contract check, not an HTML5 tree builder: void elements must not
+receive content, optional end tags (e.g. `</li>`) are not inserted implicitly, and
+`unsafe { }` payloads are forwarded without inspection.
+
+Composition: the validator only sees the events that reach it, so wrapper order decides
+which stream is validated. `consumer.filter { ... }.validate()` validates the raw events,
+while `consumer.validate().filter { ... }` validates the transformed events produced by
+the filter; the same applies to `delayed`, `onFinalize`, `trace` and the injector.
+
+Complexity: O(1) per event plus O(open tags) only when a diagnostic is created; memory is
+O(open tags + recorded diagnostics). All state is per-instance — consumers that are not
+wrapped pay nothing.
+
 # Building
 
 See the [development](https://github.com/kotlin/kotlinx.html/wiki/Development) page for details.
-

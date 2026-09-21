@@ -2854,6 +2854,9 @@ public final class kotlinx/html/Entities : java/lang/Enum {
 	public static fun values ()[Lkotlinx/html/Entities;
 }
 
+public abstract interface annotation class kotlinx/html/ExperimentalKotlinxHtmlApi : java/lang/annotation/Annotation {
+}
+
 public class kotlinx/html/FIELDSET : kotlinx/html/HTMLTag, kotlinx/html/HtmlBlockTag {
 	public fun <init> (Ljava/util/Map;Lkotlinx/html/TagConsumer;)V
 	public fun getConsumer ()Lkotlinx/html/TagConsumer;
@@ -5300,7 +5303,7 @@ public class kotlinx/html/TFOOT : kotlinx/html/HTMLTag, kotlinx/html/CommonAttri
 	public fun getConsumer ()Lkotlinx/html/TagConsumer;
 }
 
-public class kotlinx/html/TH : kotlinx/html/HTMLTag, kotlinx/html/HtmlInlineTag {
+public class kotlinx/html/TH : kotlinx/html/HTMLTag, kotlinx/html/HtmlBlockTag {
 	public fun <init> (Ljava/util/Map;Lkotlinx/html/TagConsumer;)V
 	public final fun getColSpan ()Ljava/lang/String;
 	public fun getConsumer ()Lkotlinx/html/TagConsumer;
@@ -5362,6 +5365,7 @@ public final class kotlinx/html/Tag$DefaultImpls {
 
 public abstract interface class kotlinx/html/TagConsumer {
 	public abstract fun finalize ()Ljava/lang/Object;
+	public abstract fun getHead ()Ljava/lang/Object;
 	public abstract fun onTagAttributeChange (Lkotlinx/html/Tag;Ljava/lang/String;Ljava/lang/String;)V
 	public abstract fun onTagComment (Ljava/lang/CharSequence;)V
 	public abstract fun onTagContent (Ljava/lang/CharSequence;)V
@@ -5577,6 +5581,7 @@ public final class kotlinx/html/consumers/DelayedConsumer : kotlinx/html/TagCons
 	public fun <init> (Lkotlinx/html/TagConsumer;)V
 	public fun finalize ()Ljava/lang/Object;
 	public final fun getDownstream ()Lkotlinx/html/TagConsumer;
+	public fun getHead ()Ljava/lang/Object;
 	public fun onTagAttributeChange (Lkotlinx/html/Tag;Ljava/lang/String;Ljava/lang/String;)V
 	public fun onTagComment (Ljava/lang/CharSequence;)V
 	public fun onTagContent (Ljava/lang/CharSequence;)V
@@ -5600,6 +5605,7 @@ public final class kotlinx/html/consumers/FinalizeConsumer : kotlinx/html/TagCon
 	public fun finalize ()Ljava/lang/Object;
 	public final fun getBlock ()Lkotlin/jvm/functions/Function2;
 	public final fun getDownstream ()Lkotlinx/html/TagConsumer;
+	public fun getHead ()Ljava/lang/Object;
 	public fun onTagAttributeChange (Lkotlinx/html/Tag;Ljava/lang/String;Ljava/lang/String;)V
 	public fun onTagComment (Ljava/lang/CharSequence;)V
 	public fun onTagContent (Ljava/lang/CharSequence;)V
@@ -5641,6 +5647,7 @@ public final class kotlinx/html/consumers/TraceConsumer : kotlinx/html/TagConsum
 	public fun <init> (Lkotlinx/html/TagConsumer;Lkotlin/jvm/functions/Function1;)V
 	public fun finalize ()Ljava/lang/Object;
 	public final fun getDownstream ()Lkotlinx/html/TagConsumer;
+	public fun getHead ()Ljava/lang/Object;
 	public final fun getPrintln ()Lkotlin/jvm/functions/Function1;
 	public fun onTagAttributeChange (Lkotlinx/html/Tag;Ljava/lang/String;Ljava/lang/String;)V
 	public fun onTagComment (Ljava/lang/CharSequence;)V
@@ -5658,6 +5665,71 @@ public final class kotlinx/html/consumers/Trace_consumerKt {
 
 public final class kotlinx/html/consumers/Trace_jvmKt {
 	public static final fun trace (Lkotlinx/html/TagConsumer;)Lkotlinx/html/TagConsumer;
+}
+
+public final class kotlinx/html/consumers/ValidatingTagConsumer : kotlinx/html/TagConsumer {
+	public fun <init> (Lkotlinx/html/TagConsumer;Lkotlinx/html/consumers/ValidationMode;ILkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Lkotlinx/html/TagConsumer;Lkotlinx/html/consumers/ValidationMode;ILkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun finalize ()Ljava/lang/Object;
+	public final fun getDiagnostics ()Ljava/util/List;
+	public final fun getDownstream ()Lkotlinx/html/TagConsumer;
+	public final fun getDroppedDiagnosticCount ()I
+	public fun getHead ()Ljava/lang/Object;
+	public final fun getMaxDiagnostics ()I
+	public final fun getMode ()Lkotlinx/html/consumers/ValidationMode;
+	public final fun getSourceToken ()Lkotlin/jvm/functions/Function0;
+	public fun onTagAttributeChange (Lkotlinx/html/Tag;Ljava/lang/String;Ljava/lang/String;)V
+	public fun onTagComment (Ljava/lang/CharSequence;)V
+	public fun onTagContent (Ljava/lang/CharSequence;)V
+	public fun onTagContentEntity (Lkotlinx/html/Entities;)V
+	public fun onTagContentUnsafe (Lkotlin/jvm/functions/Function1;)V
+	public fun onTagEnd (Lkotlinx/html/Tag;)V
+	public fun onTagEvent (Lkotlinx/html/Tag;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public fun onTagStart (Lkotlinx/html/Tag;)V
+}
+
+public final class kotlinx/html/consumers/Validating_consumerKt {
+	public static final fun validate (Lkotlinx/html/TagConsumer;Lkotlinx/html/consumers/ValidationMode;ILkotlin/jvm/functions/Function0;)Lkotlinx/html/consumers/ValidatingTagConsumer;
+	public static synthetic fun validate$default (Lkotlinx/html/TagConsumer;Lkotlinx/html/consumers/ValidationMode;ILkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lkotlinx/html/consumers/ValidatingTagConsumer;
+}
+
+public final class kotlinx/html/consumers/ValidationDiagnostic {
+	public fun <init> (Lkotlinx/html/consumers/ValidationDiagnosticKind;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;JZ)V
+	public final fun getEvent ()Ljava/lang/String;
+	public final fun getFinalized ()Z
+	public final fun getForwardedEvents ()J
+	public final fun getKind ()Lkotlinx/html/consumers/ValidationDiagnosticKind;
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getSourceToken ()Ljava/lang/String;
+	public final fun getTagStack ()Ljava/util/List;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class kotlinx/html/consumers/ValidationDiagnosticKind : java/lang/Enum {
+	public static final field ATTRIBUTE_AFTER_CONTENT Lkotlinx/html/consumers/ValidationDiagnosticKind;
+	public static final field CONTENT_IN_VOID_ELEMENT Lkotlinx/html/consumers/ValidationDiagnosticKind;
+	public static final field CONTENT_OUTSIDE_TAG Lkotlinx/html/consumers/ValidationDiagnosticKind;
+	public static final field DUPLICATE_ATTRIBUTE Lkotlinx/html/consumers/ValidationDiagnosticKind;
+	public static final field END_TAG_WITHOUT_OPEN_TAG Lkotlinx/html/consumers/ValidationDiagnosticKind;
+	public static final field EVENT_AFTER_FINALIZE Lkotlinx/html/consumers/ValidationDiagnosticKind;
+	public static final field MISMATCHED_END_TAG Lkotlinx/html/consumers/ValidationDiagnosticKind;
+	public static final field UNCLOSED_TAGS Lkotlinx/html/consumers/ValidationDiagnosticKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lkotlinx/html/consumers/ValidationDiagnosticKind;
+	public static fun values ()[Lkotlinx/html/consumers/ValidationDiagnosticKind;
+}
+
+public final class kotlinx/html/consumers/ValidationException : java/lang/RuntimeException {
+	public fun <init> (Ljava/util/List;)V
+	public final fun getDiagnostics ()Ljava/util/List;
+}
+
+public final class kotlinx/html/consumers/ValidationMode : java/lang/Enum {
+	public static final field COLLECT Lkotlinx/html/consumers/ValidationMode;
+	public static final field STRICT Lkotlinx/html/consumers/ValidationMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lkotlinx/html/consumers/ValidationMode;
+	public static fun values ()[Lkotlinx/html/consumers/ValidationMode;
 }
 
 public final class kotlinx/html/dom/Dom_jvmKt {
@@ -5684,6 +5756,8 @@ public final class kotlinx/html/dom/HTMLDOMBuilder : kotlinx/html/TagConsumer {
 	public synthetic fun finalize ()Ljava/lang/Object;
 	public fun finalize ()Lorg/w3c/dom/Element;
 	public final fun getDocument ()Lorg/w3c/dom/Document;
+	public synthetic fun getHead ()Ljava/lang/Object;
+	public fun getHead ()Lorg/w3c/dom/Element;
 	public fun onTagAttributeChange (Lkotlinx/html/Tag;Ljava/lang/String;Ljava/lang/String;)V
 	public fun onTagComment (Ljava/lang/CharSequence;)V
 	public fun onTagContent (Ljava/lang/CharSequence;)V
@@ -5733,6 +5807,8 @@ public final class kotlinx/html/stream/HTMLStreamBuilder : kotlinx/html/TagConsu
 	public fun <init> (Ljava/lang/Appendable;ZZ)V
 	public fun finalize ()Ljava/lang/Appendable;
 	public synthetic fun finalize ()Ljava/lang/Object;
+	public fun getHead ()Ljava/lang/Appendable;
+	public synthetic fun getHead ()Ljava/lang/Object;
 	public final fun getOut ()Ljava/lang/Appendable;
 	public final fun getPrettyPrint ()Z
 	public final fun getUnsafeImpl ()Lkotlinx/html/Unsafe;
